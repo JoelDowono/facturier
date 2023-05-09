@@ -19,6 +19,7 @@ export class FormInput {
     tva: HTMLInputElement;
     docContainer: HTMLDivElement;
     hiddenDiv: HTMLDivElement;
+    btnPrint: HTMLButtonElement
 
     
 
@@ -39,6 +40,8 @@ export class FormInput {
 
         this.docContainer = document.getElementById('document-container') as HTMLDivElement;
         this.hiddenDiv = document.getElementById('hiddenDiv') as HTMLDivElement;
+
+        this.btnPrint = document.getElementById('print') as HTMLButtonElement
 
         //Listener
         this.submitFormListener();
@@ -64,7 +67,7 @@ export class FormInput {
 
             docData = new Datas(type, firstName, lastName, address, country, town, zip, product, price, quantity, tva, date);
             let template: HasRender;
-            template = new Display(this.docContainer, this.hiddenDiv);
+            template = new Display(this.docContainer, this.hiddenDiv, this.btnPrint);
             template.render(docData, type);
         }
     }
