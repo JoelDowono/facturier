@@ -1,7 +1,9 @@
 import { Datas } from "../classes/Datas.js";
 import { HasHtmlFormat } from "../interfaces/HasHtmlFormat.js";
+import { HasPrint } from "../interfaces/HasPrint.js";
 import { HasRender } from "../interfaces/hasRender.js";
 import { Display } from "./Display.js";
+import { Print } from "./Print.js";
 
 export class FormInput {
 
@@ -19,7 +21,13 @@ export class FormInput {
     tva: HTMLInputElement;
     docContainer: HTMLDivElement;
     hiddenDiv: HTMLDivElement;
-    btnPrint: HTMLButtonElement
+    btnPrint: HTMLButtonElement;
+    btnReload: HTMLButtonElement;
+    btnStoredInvoices: HTMLButtonElement;
+    btnStoredEstimates: HTMLButtonElement;
+    storedEl: HTMLDivElement;
+
+    
 
     
 
@@ -40,17 +48,76 @@ export class FormInput {
 
         this.docContainer = document.getElementById('document-container') as HTMLDivElement;
         this.hiddenDiv = document.getElementById('hiddenDiv') as HTMLDivElement;
+        this.storedEl = document.getElementById('stored-data') as HTMLDivElement;
 
-        this.btnPrint = document.getElementById('print') as HTMLButtonElement
+        this.btnPrint = document.getElementById('print') as HTMLButtonElement;
+        this.btnReload = document.getElementById('reload') as HTMLButtonElement;
+        this.btnStoredInvoices = document.getElementById('stored-invoices') as HTMLButtonElement;
+        this.btnStoredEstimates = document.getElementById('stored-estimates') as HTMLButtonElement;
+
 
         //Listener
         this.submitFormListener();
+        this.printListener(this.btnPrint, this.docContainer);
+        this.deleteListener(this.btnReload);
+        this.getStoredDocsListener();
     }
 
     //Listeners 
 
     private submitFormListener(): void {
         this.form.addEventListener('submit', this.handleFormSubmit.bind(this));
+    }
+
+    private printListener(btn: HTMLButtonElement, docContainer: HTMLDivElement) {
+        btn.addEventListener('click', () => {
+            let availableDoc: HasPrint;
+            availableDoc = new Print(docContainer);
+            availableDoc.print();
+        })
+    }
+
+    private deleteListener(btn: HTMLButtonElement) {
+        btn.addEventListener('click', () => {
+            document.location.reload();
+            window.scrollTo(0,0);
+        })
+    }
+
+    private getStoredDocsListener(): void {
+        this.btnStoredInvoices.addEventListener("click", this.getItems.bind(this, 'invoice'));
+        this.btnStoredEstimates.addEventListener("click", this.getItems.bind(this, 'estimate'));
+    }
+
+    private getItems(docType: string) {
+        if (this.storedEl.hasChildNodes()) {
+            this.storedEl.innerHTML = "";
+        }
+        
+        if (localStorage.getItem(docType)) {
+            let array: string | null;
+            array = localStorage.getItem(docType);
+
+            if (array !== null && array.length > 2) {
+                let arrayData: string[];
+                arrayData = JSON.parse(array);
+
+                arrayData.map((doc: string): void => {
+                    let card: HTMLDivElement = document.createElement('div');
+                    let cardBody: HTMLDivElement = document.createElement('div');
+                    let cardClasses :Array<string> = ['card', 'mt-5'];
+                    let cardBodyClasses : string = 'card-body';
+                    card.classList.add(...cardClasses);
+                    cardBody.classList.add(cardBodyClasses);
+
+                    cardBody.innerHTML = doc;
+                    card.append(cardBody);
+                    this.storedEl.append(card);
+                })
+            } else {
+                this.storedEl.innerHTML = '<div class="p-5">Aucune data disponible !</div>';
+            }
+        }
     }
 
     private handleFormSubmit(e: Event) {
@@ -69,6 +136,7 @@ export class FormInput {
             let template: HasRender;
             template = new Display(this.docContainer, this.hiddenDiv, this.btnPrint);
             template.render(docData, type);
+
         }
     }
 
